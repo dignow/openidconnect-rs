@@ -470,8 +470,8 @@ macro_rules! deserialize_fields {
                 )
             );
         }
-        let seconds = $map.next_value::<Option<Timestamp>>()?;
-        $field = seconds
+        if let Ok(seconds) = $map.next_value::<Option<Timestamp>>() {
+            $field = seconds
             .map(|sec| timestamp_to_utc(&sec).map_err(|_| serde::de::Error::custom(
                 format!(
                     concat!(
@@ -482,6 +482,7 @@ macro_rules! deserialize_fields {
                     sec,
                 )
             ))).transpose()?;
+        }
     };
     (@case $map:ident $key:ident $language_tag_opt:ident
      Option(Boolean($field:ident))) => {
