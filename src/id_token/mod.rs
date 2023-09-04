@@ -329,6 +329,13 @@ where
         }
     ];
 
+    ///
+    /// Returns the standard claims as a `StandardClaims` object.
+    ///
+    pub fn standard_claims(&self) -> &StandardClaims<GC> {
+        &self.standard_claims
+    }
+
     /// Returns additional ID token claims.
     pub fn additional_claims(&self) -> &AC {
         self.additional_claims.as_ref()
