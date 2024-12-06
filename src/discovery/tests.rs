@@ -1158,3 +1158,27 @@ fn test_unsupported_enum_values() {
         serde_json::from_str(&serialized_json).unwrap();
     assert_eq!(provider_metadata, redeserialized_metadata);
 }
+
+#[test]
+fn test_is_issuer_equal() {
+    use crate::discovery::is_issuer_equal;
+
+    assert!(is_issuer_equal(
+        &IssuerUrl::new("https://example.com".to_string()).unwrap(),
+        &IssuerUrl::new("https://example.com".to_string()).unwrap()
+    ));
+    assert!(is_issuer_equal(
+        &IssuerUrl::new("https://example.com".to_string()).unwrap(),
+        &IssuerUrl::new("https://example.com/".to_string()).unwrap()
+    ));
+
+    assert!(is_issuer_equal(
+        &IssuerUrl::new("https://example.com".to_string()).unwrap(),
+        &IssuerUrl::new("https://example.com//".to_string()).unwrap()
+    ));
+
+    assert!(!is_issuer_equal(
+        &IssuerUrl::new("https://example.com1".to_string()).unwrap(),
+        &IssuerUrl::new("https://example.com".to_string()).unwrap()
+    ));
+}
