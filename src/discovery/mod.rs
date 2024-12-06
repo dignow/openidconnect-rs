@@ -380,10 +380,11 @@ where
         )
         .map_err(DiscoveryError::Parse)?;
 
-        if provider_metadata.issuer() != issuer_url {
+        let issuer_url_metadata = provider_metadata.issuer();
+        if !is_issuer_equal(issuer_url_metadata, issuer_url) {
             Err(DiscoveryError::Validation(format!(
                 "unexpected issuer URI `{}` (expected `{}`)",
-                provider_metadata.issuer().as_str(),
+                issuer_url_metadata.as_str(),
                 issuer_url.as_str()
             )))
         } else {
@@ -399,6 +400,42 @@ where
     pub fn additional_metadata_mut(&mut self) -> &mut A {
         &mut self.additional_metadata
     }
+}
+
+// Ignore `/` at the end of the URLs.
+// Because `https://dev-aabbcc.auth0.com/.well-known/openid-configuration` returns `https://dev-aabbcc.auth0.com/`.
+//
+// No need to consider the `/` in the middle of the URLs.
+fn is_issuer_equal(issuer_url_metadata: &IssuerUrl, issuer_url: &IssuerUrl) -> bool {
+    if issuer_url_metadata == issuer_url {
+        return true;
+    }
+
+    let issuer_url_metadata = issuer_url_metadata.as_str();
+    let last_non_slash_metadata = issuer_url_metadata
+        .chars()
+        .rev()
+        .position(|c| c != '/')
+        .map(|pos| issuer_url_metadata.len() - pos - 1)
+        .unwrap_or(0);
+    if last_non_slash_metadata == 0 {
+        // Unreachable
+        return false;
+    }
+
+    let issuer_url = issuer_url.as_str();
+    let last_non_slash = issuer_url
+        .chars()
+        .rev()
+        .position(|c| c != '/')
+        .map(|pos| issuer_url.len() - pos - 1)
+        .unwrap_or(0);
+    if last_non_slash == 0 {
+        // Unreachable
+        return false;
+    }
+
+    issuer_url_metadata[..last_non_slash_metadata] == issuer_url[..last_non_slash]
 }
 
 /// Error retrieving provider metadata.
